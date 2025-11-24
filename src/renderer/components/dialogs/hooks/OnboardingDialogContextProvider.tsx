@@ -24,8 +24,9 @@ import React, {
   useRef,
 } from 'react';
 import LoadingLazy from '-/components/LoadingLazy';
-import { useSelector } from 'react-redux';
-import { isFirstRun } from '-/reducers/settings';
+import { useDispatch, useSelector } from 'react-redux';
+import { actions as SettingsActions, isFirstRun } from '-/reducers/settings';
+import { AppDispatch } from '-/reducers/app';
 import AppConfig from '-/AppConfig';
 
 type OnboardingDialogContextData = {
@@ -53,6 +54,7 @@ export const OnboardingDialogContextProvider = ({
 }: OnboardingDialogContextProviderProps) => {
   const firstRun: boolean = useSelector(isFirstRun);
   const open = useRef<boolean>(firstRun);
+  const dispatch: AppDispatch = useDispatch();
 
   const [ignored, forceUpdate] = useReducer((x) => x + 1, 0, undefined);
 
@@ -78,6 +80,7 @@ export const OnboardingDialogContextProvider = ({
   }
 
   function closeDialog() {
+    dispatch(SettingsActions.setFirstRun(false));
     open.current = false;
     forceUpdate();
   }
