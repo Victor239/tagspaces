@@ -25,6 +25,7 @@ import React, {
 } from 'react';
 import LoadingLazy from '-/components/LoadingLazy';
 import { actions as SettingsActions, isFirstRun } from '-/reducers/settings';
+import { getDefaultLocationId } from '-/reducers/locations';
 import { AppDispatch } from '-/reducers/app';
 import { useDispatch, useSelector } from 'react-redux';
 import AppConfig from '-/AppConfig';
@@ -51,7 +52,9 @@ export const LicenseDialogContextProvider = ({
   children,
 }: LicenseDialogContextProviderProps) => {
   const firstRun: boolean = useSelector(isFirstRun);
-  const open = useRef<boolean>(firstRun);
+  const defaultLocationId = useSelector(getDefaultLocationId);
+  // Only show license dialog if it's the first run AND there's no startup location set
+  const open = useRef<boolean>(firstRun && !defaultLocationId);
   const dispatch: AppDispatch = useDispatch();
 
   const [ignored, forceUpdate] = useReducer((x) => x + 1, 0, undefined);

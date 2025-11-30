@@ -26,6 +26,7 @@ import React, {
 import LoadingLazy from '-/components/LoadingLazy';
 import { useSelector } from 'react-redux';
 import { isFirstRun } from '-/reducers/settings';
+import { getDefaultLocationId } from '-/reducers/locations';
 import AppConfig from '-/AppConfig';
 
 type OnboardingDialogContextData = {
@@ -52,7 +53,9 @@ export const OnboardingDialogContextProvider = ({
   children,
 }: OnboardingDialogContextProviderProps) => {
   const firstRun: boolean = useSelector(isFirstRun);
-  const open = useRef<boolean>(firstRun);
+  const defaultLocationId = useSelector(getDefaultLocationId);
+  // Only show onboarding if it's the first run AND there's no startup location set
+  const open = useRef<boolean>(firstRun && !defaultLocationId);
 
   const [ignored, forceUpdate] = useReducer((x) => x + 1, 0, undefined);
 
