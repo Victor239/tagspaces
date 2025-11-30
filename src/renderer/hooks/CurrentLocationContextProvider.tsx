@@ -156,6 +156,7 @@ export const CurrentLocationContextProvider = ({
 
   const [ignored, forceUpdate] = useReducer((x) => x + 1, 0, undefined);
 
+  // Open default/startup location when it becomes available
   useEffect(() => {
     if (
       !currentLocationId.current &&
@@ -171,6 +172,9 @@ export const CurrentLocationContextProvider = ({
         openLocationById(defaultLocationId);
       }
     }
+  }, [defaultLocationId]);
+
+  useEffect(() => {
     try {
       // Listen for messages from other tabs
       broadcast.onmessage = (event: MessageEvent) => {
