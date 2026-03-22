@@ -144,7 +144,7 @@ export const CurrentLocationContextProvider = ({
   const allLocations = useRef<CommonLocation[]>(
     locations.map((l) => new CommonLocation(l)),
   );
-  const currentLocationId = useRef<string>(undefined); //defaultLocationId);
+  const currentLocationId = useRef<string>(defaultLocationId);
   const selectedLocation = useRef<CommonLocation>(undefined);
   const skipInitialDirList = useRef<boolean>(false);
   const initLocations = useRef<boolean>(false);
