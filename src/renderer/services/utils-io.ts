@@ -703,11 +703,15 @@ export function setZoomFactorElectron(zoomLevel) {
   }
 }
 
-export function setGlobalShortcuts(globalShortcutsEnabled) {
+export function setGlobalShortcuts(
+  globalShortcutsEnabled: boolean,
+  globalKeyBindings?: Array<{ name: string; command: string }>,
+) {
   if (AppConfig.isElectron) {
     window.electronIO.ipcRenderer.sendMessage(
       'global-shortcuts-enabled',
       globalShortcutsEnabled,
+      globalKeyBindings,
     );
   }
 }

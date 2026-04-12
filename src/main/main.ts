@@ -38,6 +38,7 @@ import { resolveHtmlPath } from './util';
 let isMacLike = process.platform === 'darwin';
 let mainWindow: BrowserWindow | null = null;
 let globalShortcutsEnabled = false;
+let globalKeyBindingsConfig: Array<{ name: string; command: string }> = [];
 let startupFilePath: string | undefined;
 let portableMode: boolean | undefined;
 const SUPPORTED_EXTS = new Set(['.md', '.mmd', '.txt', '.html', '.glb']);
@@ -319,6 +320,7 @@ function bindTrayMenu(i18n: any) {
     i18n,
     isMacLike,
     globalShortcutsEnabled,
+    globalKeyBindingsConfig,
   );
 }
 function bindAppMenu(i18n: any) {
@@ -704,27 +706,45 @@ app
         BrowserWindow.getFocusedWindow()?.webContents.setZoomFactor(zoomLevel);
       });
 
-      ipcMain.on('global-shortcuts-enabled', (e, globalShortcuts) => {
-        globalShortcutsEnabled = globalShortcuts;
-        try {
-          bindTrayMenu(i18n);
-        } catch (ex) {
-          console.log('buildMenus', ex);
-        }
-        if (globalShortcutsEnabled) {
-          globalShortcut.register('CommandOrControl+Shift+F', showSearch);
-          globalShortcut.register('CommandOrControl+Shift+P', resumePlayback);
-          globalShortcut.register('MediaPlayPause', resumePlayback);
-          globalShortcut.register('CommandOrControl+Shift+N', newTextFile);
-          globalShortcut.register('CommandOrControl+Shift+D', getNextFile);
-          globalShortcut.register('MediaNextTrack', getNextFile);
-          globalShortcut.register('CommandOrControl+Shift+A', getPreviousFile);
-          globalShortcut.register('MediaPreviousTrack', getPreviousFile);
-          globalShortcut.register('CommandOrControl+Shift+W', showApp);
-        } else {
+      ipcMain.on(
+        'global-shortcuts-enabled',
+        (e, enabled, keyBindings) => {
+          globalShortcutsEnabled = enabled;
+          globalKeyBindingsConfig = keyBindings || [];
+          try {
+            bindTrayMenu(i18n);
+          } catch (ex) {
+            console.log('buildMenus', ex);
+          }
           globalShortcut.unregisterAll();
-        }
-      });
+          if (globalShortcutsEnabled && globalKeyBindingsConfig.length > 0) {
+            const actionHandlers: Record<string, () => void> = {
+              globalShowTagSpaces: showApp,
+              globalShowSearch: showSearch,
+              globalNewTextFile: newTextFile,
+              globalNextFile: getNextFile,
+              globalPreviousFile: getPreviousFile,
+              globalResumePlayback: resumePlayback,
+              globalMediaPlayPause: resumePlayback,
+              globalMediaNextTrack: getNextFile,
+              globalMediaPrevTrack: getPreviousFile,
+            };
+            for (const kb of globalKeyBindingsConfig) {
+              const handler = actionHandlers[kb.name];
+              if (handler && kb.command) {
+                try {
+                  globalShortcut.register(kb.command, handler);
+                } catch (err) {
+                  console.warn(
+                    `Failed to register global shortcut ${kb.name}: ${kb.command}`,
+                    err,
+                  );
+                }
+              }
+            }
+          }
+        },
+      );
 
       ipcMain.on('relaunch-app', reloadApp);
 

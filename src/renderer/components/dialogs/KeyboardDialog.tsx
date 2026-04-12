@@ -23,14 +23,20 @@ import { SettingsTab } from '-/components/dialogs/SettingsDialog';
 import TsDialogActions from '-/components/dialogs/components/TsDialogActions';
 import TsDialogTitle from '-/components/dialogs/components/TsDialogTitle';
 import { useSettingsDialogContext } from '-/components/dialogs/hooks/useSettingsDialogContext';
-import { getKeyBindingObject } from '-/reducers/settings';
+import {
+  getGlobalKeyBindingObject,
+  getKeyBindingObject,
+  isGlobalKeyBindingEnabled,
+} from '-/reducers/settings';
 import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
+import Divider from '@mui/material/Divider';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTranslation } from 'react-i18next';
@@ -71,9 +77,20 @@ function KeyboardDialog(props: Props) {
   const { open, onClose } = props;
   const { t } = useTranslation();
   const keyBindings = useSelector(getKeyBindingObject);
+  const globalKeyBindings = useSelector(getGlobalKeyBindingObject);
+  const globalEnabled = useSelector(isGlobalKeyBindingEnabled);
   const theme = useTheme();
   const { openSettingsDialog } = useSettingsDialogContext();
   const smallScreen = useMediaQuery(theme.breakpoints.down('md'));
+
+  const keyBadgeSx = {
+    backgroundColor: theme.palette.primary.main,
+    color: 'white',
+    font: 'Console',
+    fontFamily: 'monospace',
+    padding: '5px 10px 5px 10px',
+    borderRadius: AppConfig.defaultCSSRadius,
+  };
 
   return (
     <Dialog
@@ -96,21 +113,36 @@ function KeyboardDialog(props: Props) {
           overflow: 'auto',
         }}
       >
+        {AppConfig.isElectron &&
+          globalEnabled &&
+          globalKeyBindings &&
+          Object.keys(globalKeyBindings).length > 0 && (
+            <>
+              <Typography
+                variant="subtitle2"
+                sx={{ paddingLeft: 2, paddingTop: 1, fontWeight: 'bold' }}
+              >
+                {t('core:globalKeyboardShortcuts')}
+              </Typography>
+              <List dense={false}>
+                {Object.keys(globalKeyBindings).map((shortcutKey) => (
+                  <ListItem key={shortcutKey}>
+                    <ListItemText primary={t('core:' + shortcutKey)} />
+                    <Box sx={keyBadgeSx}>
+                      {adjustKeyBinding(globalKeyBindings[shortcutKey])}
+                    </Box>
+                  </ListItem>
+                ))}
+              </List>
+              <Divider />
+            </>
+          )}
         <List dense={false}>
           {keyBindings &&
             Object.keys(keyBindings).map((shortcutKey) => (
               <ListItem key={shortcutKey}>
                 <ListItemText primary={t('core:' + shortcutKey)} />
-                <Box
-                  sx={{
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    font: 'Console',
-                    fontFamily: 'monospace',
-                    padding: '5px 10px 5px 10px',
-                    borderRadius: AppConfig.defaultCSSRadius,
-                  }}
-                >
+                <Box sx={keyBadgeSx}>
                   {adjustKeyBinding(keyBindings[shortcutKey])}
                 </Box>
               </ListItem>

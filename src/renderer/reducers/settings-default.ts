@@ -19,6 +19,7 @@
 import AppConfig from '-/AppConfig';
 import { extensionsFound, supportedFileTypes } from '-/extension-config';
 import { PerspectiveIDs } from '-/perspectives';
+import globalKeyBindings from '-/reducers/global-keybindings-default';
 import keyBindings from '-/reducers/keybindings-default';
 import { getUuid } from '@tagspaces/tagspaces-common/utils-io';
 
@@ -265,6 +266,7 @@ export default {
     },
   ],
   keyBindings: keyBindings(AppConfig.isMacLike),
+  globalKeyBindings: globalKeyBindings(),
   supportedFileTypes: AppConfig.ExtSupportedFileTypes
     ? [...supportedFileTypes, ...AppConfig.ExtSupportedFileTypes]
     : supportedFileTypes,

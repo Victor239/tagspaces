@@ -85,6 +85,7 @@ export const types = {
   SWITCH_THEME: 'SETTINGS/SWITCH_THEME',
   SET_KEYBINDING: 'SETTINGS/SET_KEYBINDING',
   SET_GLOBAL_KEYBINDING: 'SETTINGS/SET_GLOBAL_KEYBINDING',
+  SET_GLOBAL_KEYBINDING_ENTRY: 'SETTINGS/SET_GLOBAL_KEYBINDING_ENTRY',
   SET_ZOOM_RESET: 'SETTINGS/SET_ZOOM_RESET',
   SET_ZOOM_RESTORE: 'SETTINGS/SET_ZOOM_RESTORE',
   SET_ZOOM_IN: 'SETTINGS/SET_ZOOM_IN',
@@ -132,6 +133,14 @@ export default (state: any = defaultSettings, action: any) => {
         ),
       );
 
+      const mergedGlobalKeyBindings = defaultSettings.globalKeyBindings.map(
+        (x) =>
+          Object.assign(
+            x,
+            (state.globalKeyBindings || []).find((y) => y.name === x.name),
+          ),
+      );
+
       const explicitlyDeletedTypes = state.explicitlyDeletedFileTypes || [];
       const defaultFileTypes = defaultSettings.supportedFileTypes.filter(
         (item) => !explicitlyDeletedTypes.includes(item.type),
@@ -149,6 +158,7 @@ export default (state: any = defaultSettings, action: any) => {
           // ...defaultSettings.keyBindings, // use to reset to the default key bindings
           ...mergedKeyBindings,
         ],
+        globalKeyBindings: [...mergedGlobalKeyBindings],
         supportedFileTypes: mergeByProp(
           defaultFileTypes,
           state.supportedFileTypes,
@@ -384,6 +394,26 @@ export default (state: any = defaultSettings, action: any) => {
         ...state,
         enableGlobalKeyboardShortcuts: action.enableGlobalKeyboardShortcuts,
       };
+    }
+    case types.SET_GLOBAL_KEYBINDING_ENTRY: {
+      let indexForEditing = -1;
+      (state.globalKeyBindings || []).map((kb, index) => {
+        if (kb.name === action.keyBindingName) {
+          indexForEditing = index;
+        }
+        return true;
+      });
+      if (indexForEditing >= 0) {
+        return {
+          ...state,
+          globalKeyBindings: [
+            ...state.globalKeyBindings.slice(0, indexForEditing),
+            { name: action.keyBindingName, command: action.keyBindingCommand },
+            ...state.globalKeyBindings.slice(indexForEditing + 1),
+          ],
+        };
+      }
+      return state;
     }
     case types.SET_ZOOM_RESET: {
       setZoomFactorElectron(1);
@@ -797,6 +827,14 @@ export const actions = {
     type: types.SET_GLOBAL_KEYBINDING,
     enableGlobalKeyboardShortcuts,
   }),
+  setGlobalKeyBindingEntry: (
+    keyBindingName: string,
+    keyBindingCommand: string,
+  ) => ({
+    type: types.SET_GLOBAL_KEYBINDING_ENTRY,
+    keyBindingName,
+    keyBindingCommand,
+  }),
   addSupportedFileTypes: (
     supportedFileTypes: Array<TS.FileTypes>,
     override = false,
@@ -997,6 +1035,10 @@ export const getDefaultDarkTheme = (state: any) =>
   state.settings.currentDarkTheme;
 export const isGlobalKeyBindingEnabled = (state: any) =>
   state.settings.enableGlobalKeyboardShortcuts;
+export const getGlobalKeyBindings = (state: any) =>
+  state.settings.globalKeyBindings || [];
+export const getGlobalKeyBindingObject = (state: any) =>
+  generateGlobalKeyBindingObject(state.settings.globalKeyBindings || []);
 export const getMainVerticalSplitSize = (state: any) =>
   state.settings.mainVSplitSize;
 export const getNewHTMLFileContent = (state: any) =>
@@ -1039,4 +1081,14 @@ function generateKeyBindingObject(keyBindings: Array<Object>) {
     return true;
   });
   return kbObject;
+}
+
+const globalKbObject: any = {};
+function generateGlobalKeyBindingObject(keyBindings: Array<Object>) {
+  Object.keys(globalKbObject).forEach((k) => delete globalKbObject[k]);
+  keyBindings.map((kb: any) => {
+    globalKbObject[kb.name] = kb.command;
+    return true;
+  });
+  return globalKbObject;
 }

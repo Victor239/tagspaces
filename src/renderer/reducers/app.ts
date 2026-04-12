@@ -20,6 +20,7 @@ import AppConfig from '-/AppConfig';
 import {
   actions as SettingsActions,
   getCheckForUpdateOnStartup,
+  getGlobalKeyBindings,
   isGlobalKeyBindingEnabled,
 } from '-/reducers/settings';
 import {
@@ -188,7 +189,10 @@ export const actions = {
       dispatch(actions.toggleLicenseDialog());
     }*/
     setTimeout(() => {
-      setGlobalShortcuts(isGlobalKeyBindingEnabled(state));
+      setGlobalShortcuts(
+        isGlobalKeyBindingEnabled(state),
+        getGlobalKeyBindings(state),
+      );
       loadExtensions();
     }, 1000);
     const langURLParam = getURLParameter('locale');

@@ -34,10 +34,13 @@ export default function buildTrayMenu(
   i18n,
   isMacLike,
   globalShortcutsEnabled,
+  globalKeyBindings?: Array<{ name: string; command: string }>,
 ) {
-  // const cKey = isMacLike ? '  -  ⌘' : '  -  Ctrl';
-  // const sKey = isMacLike ? '⇧' : 'Shift';
-  // const pKey = isMacLike ? ' ' : ' + ';
+  function getAccelerator(name: string): string | undefined {
+    if (!globalShortcutsEnabled || !globalKeyBindings) return undefined;
+    const kb = globalKeyBindings.find((b) => b.name === name);
+    return kb?.command || undefined;
+  }
 
   function openNextFile() {
     mainPageProps.openNextFile();
@@ -65,12 +68,12 @@ export default function buildTrayMenu(
     },
     {
       label: i18n.t('showTagSpaces'),
-      accelerator: globalShortcutsEnabled ? 'CmdOrCtrl+Shift+w' : undefined,
+      accelerator: getAccelerator('globalShowTagSpaces'),
       click: mainPageProps.showTagSpaces,
     },
     {
       label: i18n.t('showSearch'),
-      accelerator: globalShortcutsEnabled ? 'CmdOrCtrl+Shift+f' : undefined,
+      accelerator: getAccelerator('globalShowSearch'),
       click: mainPageProps.openSearch,
     },
     {
@@ -78,7 +81,7 @@ export default function buildTrayMenu(
     },
     {
       label: i18n.t('newFileNote'),
-      accelerator: globalShortcutsEnabled ? 'CmdOrCtrl+Shift+n' : undefined,
+      accelerator: getAccelerator('globalNewTextFile'),
       click: mainPageProps.toggleNewFileDialog,
     },
     {
@@ -86,12 +89,12 @@ export default function buildTrayMenu(
     },
     {
       label: i18n.t('openNextFileTooltip'),
-      accelerator: globalShortcutsEnabled ? 'CmdOrCtrl+Shift+d' : undefined,
+      accelerator: getAccelerator('globalNextFile'),
       click: openNextFile,
     },
     {
       label: i18n.t('openPrevFileTooltip'),
-      accelerator: globalShortcutsEnabled ? 'CmdOrCtrl+Shift+a' : undefined,
+      accelerator: getAccelerator('globalPreviousFile'),
       click: openPrevFile,
     },
     {
@@ -99,7 +102,7 @@ export default function buildTrayMenu(
     },
     {
       label: i18n.t('pauseResumePlayback'),
-      accelerator: globalShortcutsEnabled ? 'CmdOrCtrl+Shift+p' : undefined,
+      accelerator: getAccelerator('globalResumePlayback'),
       click: playResumePlayback,
     },
     {
